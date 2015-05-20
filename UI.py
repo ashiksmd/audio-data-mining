@@ -8,16 +8,19 @@ import common
 
 class AudioDMUI(wx.Frame):
    def __init__(self, parent, title):
-      super(AudioDMUI, self).__init__(parent, title=title, size=(800,400))
+      super(AudioDMUI, self).__init__(parent, title=title, size=(600,400))
 
       self.audioList = AudioList(self)
       self.audioInfo = AudioInfo(self)
 
       common.audioInfo = self.audioInfo
 
+      # Init audio list selection
+      self.audioList.onSelect(None)
+
       hbox = wx.BoxSizer(wx.HORIZONTAL)
       hbox.Add(self.audioList)
-      hbox.Add(self.audioInfo)
+      hbox.Add(self.audioInfo, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 5)
 
       self.SetSizer(hbox)
       self.Show()

@@ -45,9 +45,9 @@ class AudioList(wx.Panel):
          self.listBox.Destroy()
 
       self.listBox = wx.ListBox(self, choices=audioFiles, size=(200,300))
-      self.listBox.SetSelection(0)
-
       self.Bind(wx.EVT_LISTBOX, self.onSelect, self.listBox)
+
+      self.listBox.SetSelection(0)
 
    def onSelect(self, e):
       selectedIndex = self.listBox.GetSelection()

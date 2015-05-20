@@ -12,7 +12,7 @@ class Audio:
    def stop(self):
       self.nowPlaying = False
 
-   def play(self):
+   def play(self, context=None):
       self.nowPlaying = True
 
       wf = wave.open(self.path + '/' + self.name, 'rb')
@@ -33,3 +33,7 @@ class Audio:
 
       p.terminate()
 
+      self.nowPlaying = False
+
+      if context is not None:
+         context.setPlayButtonLabel('Play')
