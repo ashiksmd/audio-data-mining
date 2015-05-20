@@ -1,7 +1,6 @@
 import wx
-import pyaudio
-import wave
-import sys
+from Audio import Audio
+from threading import Thread
 
 class AudioInfo(wx.Panel):
    def __init__(self, parent):
@@ -17,30 +16,18 @@ class AudioInfo(wx.Panel):
 
       self.SetSizer(vbox)
 
-      self.fileName = None
-      self.path = None
+      self.audio = None
 
    def select(self, fileName, path):
-      self.fileName = fileName
-      self.path = path
+      self.audio = Audio(fileName, path)
 
       self.text.Destroy()
       self.text = wx.StaticText(self, label=path + '/' + fileName)
 
    def playAudio(self, e):
-      wf = wave.open(self.path + '/' + self.fileName, 'rb')
-      p = pyaudio.PyAudio()
+         if self.audio.nowPlaying:
+            Thread(target=self.audio.stop).start()
 
-      stream = p.open(format=p.get_format_from_width(wf.getsampwidth()), channels = wf.getnchannels(), rate = wf.getframerate(), output = True)
-
-      data = wf.readframes(4096)
-
-      while data != '':
-         stream.write(data)
-         data = wf.readframes(4096)
-
-      stream.stop_stream()
-      stream.close()
-
-      p.terminate()
+         else:
+            Thread(target=self.audio.play).start()
 
