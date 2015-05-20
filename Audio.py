@@ -36,4 +36,4 @@ class Audio:
       self.nowPlaying = False
 
       if context is not None:
-         context.setPlayButtonLabel('Play')
+         context.stopAudio()

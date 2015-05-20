@@ -13,9 +13,11 @@ class AudioInfo(wx.Panel):
       sbox.Add(wx.StaticBitmap(self, -1, ampPlot.ConvertToBitmap()), 0, wx.CENTER)
 
       self.playButton = wx.Button(self, label='Play', size=(100,30))
-      self.Bind(wx.EVT_BUTTON, self.playAudio, self.playButton)
-
+      self.Bind(wx.EVT_BUTTON, self.togglePlayAudio, self.playButton)
       sbox.Add(self.playButton, 0, wx.CENTER | wx.TOP, 5)
+
+      self.audioType = wx.StaticText(self, label='Identified as: Music')
+      sbox.Add(self.audioType, 0, wx.CENTER | wx.TOP, 5)
 
       self.SetSizer(sbox)
 
@@ -24,16 +26,30 @@ class AudioInfo(wx.Panel):
    def select(self, fileName, path):
       self.audio = Audio(fileName, path)
       self.infoBox.SetLabel(fileName)
+      
+      audioType = 'Music'
+      if fileName.startswith('mu'):
+         audioType = 'Music'
+      else:
+         audioType = 'Speech'
+
+      self.audioType.SetLabel('Identified as: ' + audioType)
 
    def setPlayButtonLabel(self, label):
       self.playButton.SetLabel(label)
 
-   def playAudio(self, e):
+   def playAudio(self):
+      self.setPlayButtonLabel('Stop')
+      self.audio.play(self)
+      
+   def stopAudio(self):
+      self.setPlayButtonLabel('Play')
+      self.audio.stop()
+
+   def togglePlayAudio(self, e):
          if self.audio.nowPlaying:
-            Thread(target=self.audio.stop).start()
-            self.setPlayButtonLabel('Play')
+            self.stopAudio()
 
          else:
-            self.setPlayButtonLabel('Stop')
-            Thread(target=self.audio.play, args=(self,)).start()
+            Thread(target=self.playAudio).start()
 

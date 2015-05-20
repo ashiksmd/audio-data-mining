@@ -6,9 +6,11 @@ class AudioList(wx.Panel):
    def __init__(self, parent):
       super(AudioList, self).__init__(parent)
 
-      self.listBox = None
+      self.listBox = None;
+
       self.browseButton = wx.Button(self, label='Browse', size=(100,30))
       self.directory = 'audio/music'
+
       self.loadAudioList()
 
       self.Bind(wx.EVT_BUTTON, self.chooseFolder, self.browseButton)
@@ -18,7 +20,7 @@ class AudioList(wx.Panel):
       vbox.Add(self.browseButton, 0, wx.CENTER)
 
       self.SetSizer(vbox)
-
+   
    def chooseFolder(self, e):
       """ Choose folder to get audio files from """
 
@@ -48,8 +50,15 @@ class AudioList(wx.Panel):
       self.Bind(wx.EVT_LISTBOX, self.onSelect, self.listBox)
 
       self.listBox.SetSelection(0)
+      # Update info area
+      if common.audioInfo and common.audioInfo.audio:
+         self.onSelect(None)
 
    def onSelect(self, e):
+      # If a previous audio file is playing, stop it now
+      if common.audioInfo.audio is not None:
+          common.audioInfo.stopAudio()
+
       selectedIndex = self.listBox.GetSelection()
       common.audioInfo.select(self.listBox.GetString(selectedIndex), self.directory)
 
