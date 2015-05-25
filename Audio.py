@@ -90,7 +90,20 @@ class Audio:
 
    def getPitch(self):
       """ Return pitch of audio """
-      return 0
+      maxFreq = self.fDomain[1:].argmax() + 1
+
+      pitch = 0
+
+      if maxFreq != self.nUniquePoints-1:
+         y0,y1,y2 = np.log(self.fDomain[maxFreq-1:maxFreq+2])
+         x1 = (y2 - y0) * .5 / (2 * y1 - y2 - y0)
+         # find the frequency and output it
+         pitch = (maxFreq + x1) * self.sampFreq / self.nPoints
+
+      else:
+         pitch = maxFreq * self.sampFreq / self.nPoints
+
+      return pitch
 
    def getEnergy(self):
       """ Compute and return energy of audio """
