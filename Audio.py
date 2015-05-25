@@ -11,6 +11,7 @@ import math
 import sys
 import os
 import numpy as np
+import subprocess
 
 class Audio:
    def __init__(self, path, name=None):
@@ -144,6 +145,14 @@ class Audio:
 
    def classify(self, model):
       """ Classify this audio using the provided model """
+
+      outFile = open('temp.txt', 'w')
+      outFile.write('0 ' + self.getFeatures())
+      outFile.flush()
+      outFile.close()
+
+      subprocess.call(('svm_classify', 'temp.txt', model, 'result.txt'))
+
       audioType = None
 
       if self.name.startswith('mu'):
@@ -153,12 +162,12 @@ class Audio:
 
       return audioType
 
-def generateTrainingData(directory, outFileName='TrainingData'):
+def generateTrainingData(directory, outFileName='TrainingData.txt'):
     """
      Generate training data from audio files in directory.
      Write generated data into outFile
     """
-    # Fet list of files in selected directory
+    # Fetch list of files in selected directory
     fileList = os.listdir(directory)
     fileList.sort()
 
@@ -169,26 +178,27 @@ def generateTrainingData(directory, outFileName='TrainingData'):
         audio = Audio(directory, f)
         features = audio.getFeatures()
         
-        #replace with Classify function when implemented
         if audio.name.startswith('mu'):
           audioType = '1' #music
         else:
-          audioType = '0' #speech
+          audioType = '-1' #speech
         
-        #outFile.write(audio.name + '\t')#for testing
-        outFile.write(audioType + ': ' + features + '\n')
+        outFile.write(audioType + ' ' + features + ' # ' + audio.name  + '\n')
 
     outFile.close()
+
+    return outFileName
 
 def trainModel(model, directory):
    """
       Generate training data from audio files in directory and train model
    """
    # Generate training data first
-   generateTrainingData(directory)
+   outFileName = generateTrainingData(directory)
 
-   print 'Training model', model
    # Use SVM to train and create model from the data generated above
+   subprocess.call(('svm_learn', outFileName, model))
+
    return None
 
 if __name__ == '__main__':
@@ -196,7 +206,7 @@ if __name__ == '__main__':
     argc = len(sys.argv)
     if argc > 2 and sys.argv[1] == 'generate':
        directory = sys.argv[2]
-       outFile = sys.argv[3] if argc > 3 else 'TrainingData'
+       outFile = sys.argv[3] if argc > 3 else 'TrainingData.txt'
        generateTrainingData(directory, outFile)
     elif argc == 4 and sys.argv[1] == 'train':
        model = sys.argv[2]
