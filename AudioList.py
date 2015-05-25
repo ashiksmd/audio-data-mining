@@ -1,3 +1,7 @@
+"""
+   AudioList.py
+   UI Elements to display audio files in current directory
+"""
 import wx
 import os
 import common
@@ -8,9 +12,13 @@ class AudioList(wx.Panel):
 
       self.listBox = None;
 
+      # Choose folder to get audio files from
       self.browseButton = wx.Button(self, label='Browse', size=(100,30))
+
+      # Use this folder for now
       self.directory = 'audio/music'
 
+      # Load audio files in the folder
       self.loadAudioList()
 
       self.Bind(wx.EVT_BUTTON, self.chooseFolder, self.browseButton)
@@ -33,7 +41,7 @@ class AudioList(wx.Panel):
           self.loadAudioList()
 
    def loadAudioList(self):
-      #get list of files
+      # Fet list of files in selected directory
       fileList = os.listdir(self.directory)
       fileList.sort()
 
@@ -50,6 +58,7 @@ class AudioList(wx.Panel):
       self.Bind(wx.EVT_LISTBOX, self.onSelect, self.listBox)
 
       self.listBox.SetSelection(0)
+
       # Update info area
       if common.audioInfo and common.audioInfo.audio:
          self.onSelect(None)
