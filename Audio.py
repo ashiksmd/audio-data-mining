@@ -107,7 +107,15 @@ class Audio:
 
    def getEnergy(self):
       """ Compute and return energy of audio """
-      return 0
+      energy = 0.0
+
+      for i in range(0, self.nPoints):
+         x = self.tDomain[i]
+         energy += x**2
+
+      energy /= self.nPoints
+
+      return energy
 
    def getCentroid(self):
       """ Compute and return spectral centroid of audio """
@@ -161,6 +169,7 @@ def generateTrainingData(directory, outFileName='TrainingData'):
         audio = Audio(directory, f)
         features = audio.getFeatures()
         
+        #replace with Classify function when implemented
         if audio.name.startswith('mu'):
           audioType = '1' #music
         else:
