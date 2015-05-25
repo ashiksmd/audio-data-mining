@@ -10,6 +10,7 @@ import pylab
 import math
 import sys
 import os
+import numpy as np
 
 class Audio:
    def __init__(self, path, name=None):
@@ -40,6 +41,7 @@ class Audio:
 
       self.fDomain = fDomain
       self.nPoints = nPoints
+      self.nUniquePoints = nUniquePoints
 
    def getFullPath(self):
       return self.path + '/' + self.name
@@ -94,15 +96,30 @@ class Audio:
       """ Compute and return energy of audio """
       return 0
 
-   def getSpectroid(self):
-      """ Compute and return central spectroid of audio """
-      return 0
+   def getCentroid(self):
+      """ Compute and return spectral centroid of audio """
+      time = self.nPoints / self.sampFreq
+      frequency = np.arange(self.nUniquePoints) / time
+
+      centroid = 0.0
+      sumMagnitude = 0.0
+
+      for i in range(0,self.nUniquePoints):
+         f = frequency[i]
+         x = self.fDomain[i]
+
+         centroid += f*x
+         sumMagnitude += x
+        
+      centroid /= sumMagnitude
+
+      return centroid
 
    def getFeatures(self):
       """ Get features of audio for training or querying with the model """
       return "1:" + str(self.getPitch()) + \
              " 2:" + str(self.getEnergy()) + \
-             " 3:" + str(self.getSpectroid())
+             " 3:" + str(self.getCentroid())
 
    def classify(self, model):
       """ Classify this audio using the provided model """
@@ -115,13 +132,31 @@ class Audio:
 
       return audioType
 
-def generateTrainingData(directory, outFile='TrainingData'):
-   """
+def generateTrainingData(directory, outFileName='TrainingData'):
+    """
      Generate training data from audio files in directory.
      Write generated data into outFile
-   """
-   print 'Generating training data with audio files from', directory, 'and saving to', outFile
-   return None
+    """
+    # Fet list of files in selected directory
+    fileList = os.listdir(directory)
+    fileList.sort()
+
+    outFile = open(outFileName, "w")
+
+    for f in fileList:
+      if f.endswith('.wav'):
+        audio = Audio(directory, f)
+        features = audio.getFeatures()
+        
+        if audio.name.startswith('mu'):
+          audioType = '1' #music
+        else:
+          audioType = '0' #speech
+        
+        #outFile.write(audio.name + '\t')#for testing
+        outFile.write(audioType + ': ' + features + '\n')
+
+    outFile.close()
 
 def trainModel(model, directory):
    """
