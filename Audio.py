@@ -25,7 +25,6 @@ class Audio:
       # Read wav file
       self.sampFreq, self.tDomain = wavfile.read(path + '/' + name)
 
-
       # Get frequency domain
       fDomain = pylab.fft(self.tDomain)
       nPoints = len(self.tDomain)
@@ -137,28 +136,39 @@ class Audio:
 
       return centroid
 
+   def getZCrossingRate(self):
+      """ Compute and return zero crossing rate of audio """
+      zcr = 0.0
+      for i in range(1, self.nPoints):
+         sgn1 = 1 if self.tDomain[i] > 0 else -1
+         sgn2 = 1 if self.tDomain[i-1] > 0 else -1
+
+         zcr += abs(sgn1 - sgn2)
+
+      zcr /= (2.0 * self.nPoints)
+
+      return zcr
+
    def getFeatures(self):
       """ Get features of audio for training or querying with the model """
       return "1:" + str(self.getPitch()) + \
              " 2:" + str(self.getEnergy()) + \
-             " 3:" + str(self.getCentroid())
+             " 3:" + str(self.getCentroid()) + \
+             " 4:" + str(self.getZCrossingRate())
 
    def classify(self, model):
       """ Classify this audio using the provided model """
 
       outFile = open('temp.txt', 'w')
-      outFile.write('0 ' + self.getFeatures())
+      outFile.write('0 ' + self.getFeatures() + '\n')
       outFile.flush()
       outFile.close()
 
       subprocess.call(('svm_classify', 'temp.txt', model, 'result.txt'))
 
-      audioType = None
-
-      if self.name.startswith('mu'):
-         audioType = 'Music'
-      else:
-         audioType = 'Speech'
+      # Read results
+      resultFile = open('result.txt', 'r')
+      audioType = 'Music' if float(resultFile.readline()) > 0 else 'Speech'
 
       return audioType
 

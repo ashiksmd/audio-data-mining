@@ -16,7 +16,7 @@ class AudioList(wx.Panel):
       self.browseButton = wx.Button(self, label='Browse', size=(100,30))
 
       # Use this folder for now
-      self.directory = 'audio/music'
+      self.directory = 'test'
 
       # Load audio files in the folder
       self.loadAudioList()

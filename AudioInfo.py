@@ -14,8 +14,8 @@ class AudioInfo(wx.Panel):
       sbox = wx.StaticBoxSizer(self.infoBox, wx.VERTICAL)
       
       # Plot time domain graph. Using static image until we can replace with the real thing
-      ampPlot = wx.Image('ampPlot.png', wx.BITMAP_TYPE_ANY)
-      sbox.Add(wx.StaticBitmap(self, -1, ampPlot.ConvertToBitmap()), 0, wx.CENTER)
+      #ampPlot = wx.Image('ampPlot.png', wx.BITMAP_TYPE_ANY)
+      #sbox.Add(wx.StaticBitmap(self, -1, ampPlot.ConvertToBitmap()), 0, wx.CENTER)
 
       # Allow playback of selected audio
       self.playButton = wx.Button(self, label='Play', size=(100,30))
@@ -36,7 +36,7 @@ class AudioInfo(wx.Panel):
       self.audio = Audio(path, fileName)
       self.infoBox.SetLabel(fileName)
       
-      audioType = self.audio.classify('DefaultModel')
+      audioType = self.audio.classify('model')
       
       self.audioType.SetLabel('Identified as: ' + audioType)
 
