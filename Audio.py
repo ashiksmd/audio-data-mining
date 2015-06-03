@@ -24,6 +24,8 @@ class Audio:
 
       # Read wav file
       self.sampFreq, self.tDomain = wavfile.read(path + '/' + name)
+      
+      self.tDomain = self.normalize(self.tDomain)
 
       # Get frequency domain
       fDomain = pylab.fft(self.tDomain)
@@ -39,6 +41,8 @@ class Audio:
       else:
          fDomain[1:len(fDomain)-1] = fDomain[1:len(fDomain)-1] * 2
 
+      #fDomain = self.normalize(fDomain)
+
       self.fDomain = fDomain
       self.nPoints = nPoints
       self.nUniquePoints = nUniquePoints
@@ -49,6 +53,27 @@ class Audio:
    def stop(self):
       """ Stop audio playback """
       self.nowPlaying = False
+
+   def normalize(self, sampArray):
+      mean = 0.0
+      stdDev = 0.0
+      size = len(sampArray)
+
+      for i in range(0, size):
+         mean += sampArray[i]
+
+      mean /= size
+
+      for i in range(0, size):
+         stdDev += (sampArray[i] - mean)**2
+
+      stdDev = math.sqrt(stdDev/size)
+
+      for i in range(0, size):
+         sampArray[i] = (sampArray[i] - mean) / stdDev
+
+      return sampArray
+
 
    def play(self, context=None):
       """ 
@@ -86,24 +111,6 @@ class Audio:
       # Callback to UI to signal that audio has finished playing
       if context is not None:
          context.stopAudio()
-
-
-   def getPitch(self):
-      """ Return pitch of audio """
-      maxFreq = self.fDomain[1:].argmax() + 1
-
-      pitch = 0
-
-      if maxFreq != self.nUniquePoints-1:
-         y0,y1,y2 = np.log(self.fDomain[maxFreq-1:maxFreq+2])
-         x1 = (y2 - y0) * .5 / (2 * y1 - y2 - y0)
-         # find the frequency and output it
-         pitch = (maxFreq + x1) * self.sampFreq / self.nPoints
-
-      else:
-         pitch = maxFreq * self.sampFreq / self.nPoints
-
-      return pitch
 
    def getEnergy(self):
       """ Compute and return energy of audio """
@@ -151,10 +158,9 @@ class Audio:
 
    def getFeatures(self):
       """ Get features of audio for training or querying with the model """
-      return "1:" + str(self.getPitch()) + \
-             " 2:" + str(self.getEnergy()) + \
-             " 3:" + str(self.getCentroid()) + \
-             " 4:" + str(self.getZCrossingRate())
+      return "1:" + str(self.getEnergy()) + \
+             " 2:" + str(self.getCentroid()) + \
+             " 3:" + str(self.getZCrossingRate())
 
    def classify(self, model):
       """ Classify this audio using the provided model """
