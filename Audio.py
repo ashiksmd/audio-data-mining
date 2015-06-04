@@ -25,7 +25,7 @@ class Audio:
       # Read wav file
       self.sampFreq, self.tDomain = wavfile.read(path + '/' + name)
       
-      self.tDomain = self.normalize(self.tDomain)
+      #self.tDomain = self.normalize(self.tDomain)
 
       # Get frequency domain
       fDomain = pylab.fft(self.tDomain)
@@ -41,7 +41,7 @@ class Audio:
       else:
          fDomain[1:len(fDomain)-1] = fDomain[1:len(fDomain)-1] * 2
 
-      fDomain = self.normalize(fDomain)
+      #fDomain = self.normalize(fDomain)
 
       self.fDomain = fDomain
       self.nPoints = nPoints
@@ -163,16 +163,22 @@ class Audio:
              " 3:" + str(self.getZCrossingRate())
 
 
-def classify(self, model, featuresFile='temp.txt'):
+def classify(model, featuresFile='temp.txt'):
       """ Classify this audio using the provided model """
 
-      subprocess.call(('svm_classify', featuresFile, model, 'result.txt'))
+      print "Classifying"
+      subprocess.call(['svm_classify', featuresFile, model, 'result.txt'])
+
+      print "Done. Reading results"
 
       # Read results
       resultFile = open('result.txt', 'r')
-      audioType = 'Music' if float(resultFile.readline()) > 0 else 'Speech'
+      results = resultFile.readlines()
 
-      return audioType
+      for i in range(0, len(results)):
+         results[i] = 'Music' if float(results[i]) > 0 else 'Speech'
+
+      return results
 
 def getAudioFiles(directory):
     # Fetch list of files in selected directory
@@ -186,7 +192,7 @@ def getAudioFiles(directory):
 
     return audioList
 
-def generateFeatureData(audioList, outFileName='TrainingData.txt'):
+def generateFeatureData(audioList, outFileName='TrainingData.txt', isClassifying=False):
     """
      Generate training data from audio files in directory.
      Write generated data into outFile
@@ -197,7 +203,9 @@ def generateFeatureData(audioList, outFileName='TrainingData.txt'):
     for audio in audioList:
         features = audio.getFeatures()
         
-        if audio.name.startswith('mu'):
+        if isClassifying:
+           audioType = '0'
+        elif audio.name.startswith('mu'):
           audioType = '1' #music
         else:
           audioType = '-1' #speech
@@ -220,7 +228,7 @@ if __name__ == '__main__':
        model = sys.argv[2]
        directory = sys.argv[3]
        audioList = getAudioFiles(directory)
-       generateFeatureData(audioList, 'temp.txt')
+       generateFeatureData(audioList, 'temp.txt', True)
        results = classify(model, 'temp.txt')
 
        for i in range(0, len(audioList)):
