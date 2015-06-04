@@ -41,7 +41,7 @@ class Audio:
       else:
          fDomain[1:len(fDomain)-1] = fDomain[1:len(fDomain)-1] * 2
 
-      #fDomain = self.normalize(fDomain)
+      fDomain = self.normalize(fDomain)
 
       self.fDomain = fDomain
       self.nPoints = nPoints
@@ -162,15 +162,11 @@ class Audio:
              " 2:" + str(self.getCentroid()) + \
              " 3:" + str(self.getZCrossingRate())
 
-   def classify(self, model):
+
+def classify(self, model, featuresFile='temp.txt'):
       """ Classify this audio using the provided model """
 
-      outFile = open('temp.txt', 'w')
-      outFile.write('0 ' + self.getFeatures() + '\n')
-      outFile.flush()
-      outFile.close()
-
-      subprocess.call(('svm_classify', 'temp.txt', model, 'result.txt'))
+      subprocess.call(('svm_classify', featuresFile, model, 'result.txt'))
 
       # Read results
       resultFile = open('result.txt', 'r')
@@ -178,20 +174,27 @@ class Audio:
 
       return audioType
 
-def generateTrainingData(directory, outFileName='TrainingData.txt'):
-    """
-     Generate training data from audio files in directory.
-     Write generated data into outFile
-    """
+def getAudioFiles(directory):
     # Fetch list of files in selected directory
     fileList = os.listdir(directory)
     fileList.sort()
 
-    outFile = open(outFileName, "w")
-
+    audioList = []
     for f in fileList:
       if f.endswith('.wav'):
-        audio = Audio(directory, f)
+       audioList.append(Audio(directory, f))
+
+    return audioList
+
+def generateFeatureData(audioList, outFileName='TrainingData.txt'):
+    """
+     Generate training data from audio files in directory.
+     Write generated data into outFile
+    """
+
+    outFile = open(outFileName, "w")
+
+    for audio in audioList:
         features = audio.getFeatures()
         
         if audio.name.startswith('mu'):
@@ -205,35 +208,24 @@ def generateTrainingData(directory, outFileName='TrainingData.txt'):
 
     return outFileName
 
-def trainModel(model, directory):
-   """
-      Generate training data from audio files in directory and train model
-   """
-   # Generate training data first
-   outFileName = generateTrainingData(directory)
-
-   # Use SVM to train and create model from the data generated above
-   subprocess.call(('svm_learn', outFileName, model))
-
-   return None
-
 if __name__ == '__main__':
     
     argc = len(sys.argv)
     if argc > 2 and sys.argv[1] == 'generate':
        directory = sys.argv[2]
        outFile = sys.argv[3] if argc > 3 else 'TrainingData.txt'
-       generateTrainingData(directory, outFile)
-    elif argc == 4 and sys.argv[1] == 'train':
-       model = sys.argv[2]
-       directory = sys.argv[3]
-       trainModel(model, directory)
+       audioList = getAudioFiles(directory)
+       generateFeatureData(audioList, outFile)
     elif argc == 4 and sys.argv[1] == 'classify':
        model = sys.argv[2]
-       audioFile = sys.argv[3]
-       audio = Audio(audioFile)
-       print 'Classification:', audio.classify(model)
+       directory = sys.argv[3]
+       audioList = getAudioFiles(directory)
+       generateFeatureData(audioList, 'temp.txt')
+       results = classify(model, 'temp.txt')
+
+       for i in range(0, len(audioList)):
+          print audioList[i].name, ":", results[i]
+
     else:
        print 'Invalid input. Format:\n\tpython Audio.py generate <directory> [output-file]' +\
-             '\nOR\n\tpython Audio.py train <model> <directory>' +\
-             '\nOR\n\tpython Audio.py classify <model> <audio-file>'
+             '\nOR\n\tpython Audio.py classify <model> <directory>'
