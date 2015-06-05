@@ -5,6 +5,7 @@
 import wx
 import os
 import common
+import Audio
 
 class AudioList(wx.Panel):
    def __init__(self, parent):
@@ -41,20 +42,19 @@ class AudioList(wx.Panel):
           self.loadAudioList()
 
    def loadAudioList(self):
-      # Fet list of files in selected directory
-      fileList = os.listdir(self.directory)
-      fileList.sort()
+      self.audioList = Audio.generateFeatureData(self.directory)
+      results = Audio.classify(common.model)
 
-      audioFiles = []
-
-      for f in fileList:
-         if f.endswith('.wav'):
-            audioFiles.append(f)
-
+      for i in range(0, len(self.audioList)):
+         self.audioList[i].audioType = results[i]
+      
       if(self.listBox is not None):
          self.listBox.Destroy()
 
-      self.listBox = wx.ListBox(self, choices=audioFiles, size=(200,300))
+      # Extract file names
+      fileNames = [audio.name for audio in self.audioList]
+
+      self.listBox = wx.ListBox(self, choices=fileNames, size=(200,300))
       self.Bind(wx.EVT_LISTBOX, self.onSelect, self.listBox)
 
       self.listBox.SetSelection(0)
@@ -69,5 +69,5 @@ class AudioList(wx.Panel):
           common.audioInfo.stopAudio()
 
       selectedIndex = self.listBox.GetSelection()
-      common.audioInfo.select(self.listBox.GetString(selectedIndex), self.directory)
+      common.audioInfo.select(self.audioList[selectedIndex])
 

@@ -5,6 +5,7 @@
 import wx
 from Audio import Audio
 from threading import Thread
+import common
 
 class AudioInfo(wx.Panel):
    def __init__(self, parent):
@@ -31,13 +32,14 @@ class AudioInfo(wx.Panel):
       # No audio file selected now
       self.audio = None
 
-   def select(self, fileName, path):
+   def select(self, audio):
       """ Select an audio file and classify it """
-      self.audio = Audio(path, fileName)
-      self.infoBox.SetLabel(fileName)
+      self.audio = audio
+      self.infoBox.SetLabel(audio.name)
       
-      audioType = self.audio.classify('model')
-      
+      #audioType = self.audio.classify(common.model)
+      audioType = self.audio.audioType
+
       self.audioType.SetLabel('Identified as: ' + audioType)
 
    def setPlayButtonLabel(self, label):
